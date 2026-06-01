@@ -1,0 +1,21 @@
+#macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+#LaTeX auxiliary and build files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.synctex.gz
+*.toc
+
+#LaTeX generated documents and converted assets
+*.pdf
+*-converted-to.pdf
