@@ -22,7 +22,8 @@
 \input{title/title.tex}
 
 \begin{abstract}
-While Large Language Models (LLMs) have emerged as highly competent tools for information retrieval, their default optimisation towards direct answer generation often bypasses the cognitive struggle essential for human learning. This dissertation proposes a Socratic Multi-Agent System (MAS) designed to facilitate active learning through dynamic scaffolding, and presents a novel evaluation framework: Agent-in-the-Loop Epistemic Simulation. To address critical limitations in current educational agent literature, we introduce three core innovations: (1) Cognitive Bandwidth \& Friction Modelling (CBFM) to capture working memory dynamics and Zone of Proximal Development alignment; (2) Sycophancy Mitigation via Adversarial Student Scratchpad Probing, bypassing the ``Yes-Man'' bias of LLM agents; and (3) Tutor Policy Optimisation formulated as a Markov Decision Process (MDP). Using a cyclic state graph in LangGraph, we orchestrate interactions between a Socratic tutor, tracker, and guardrail, using an independent Evaluator LLM under a double-blind grading protocol to measure learning outcomes.
+While Large Language Models (LLMs) have emerged as highly competent tools for information retrieval, their default optimisation towards direct answer generation often bypasses the cognitive struggle essential for human learning. This dissertation presents the design and implementation of a Socratic Multi-Agent System (MAS) for computer science education, designed to guide students towards conceptual mastery through dynamic scaffolding. Evaluating and optimising such Socratic systems with live human cohorts is severely bottlenecked by the high financial, safety, and operational costs of early-stage trials. To resolve this, we leverage an Agent-in-the-Loop Epistemic Simulation as a rigorous evaluation methodology, simulating student profiles to test and bootstrap the tutor's scaffolding policies under controlled cognitive conditions. To address critical limitations in current educational agent simulation, we introduce three key innovations within this evaluation pipeline: (1) Cognitive Bandwidth \& Friction Modelling (CBFM) to simulate realistic working memory fatigue and Zone of Proximal Development alignment; (2) Sycophancy Mitigation via Adversarial Student Scratchpad Probing to bypass the ``Yes-Man'' bias of standard LLM agents; and (3) Tutor Policy Optimisation formulated as a Markov Decision Process (MDP). Using a cyclic state graph in LangGraph, we orchestrate interactions between a Socratic tutor, tracker, and guardrail, validating learning gains via an automated double-blind grading protocol.
+
 \end{abstract}
 
 % \renewcommand{\abstractname}{Acknowledgements}
@@ -31,11 +32,12 @@ While Large Language Models (LLMs) have emerged as highly competent tools for in
 % \end{abstract}
 
 \tableofcontents
-\listoffigures
-\listoftables
+% \listoffigures
+% \listoftables
 
 \input{introduction/introduction.tex}
-\input{background/background.tex}
+% \input{background/background.tex}
+\input{literature/literature_review.tex}
 \input{project/project.tex}
 \input{evaluation/evaluation.tex}
 \input{conclusion/conclusion.tex}
