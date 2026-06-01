@@ -22,13 +22,13 @@
 \input{title/title.tex}
 
 \begin{abstract}
-Your abstract goes here
+While Large Language Models (LLMs) have emerged as highly competent tools for information retrieval, their default optimisation towards direct answer generation often bypasses the cognitive struggle essential for human learning. This dissertation proposes a Socratic Multi-Agent System (MAS) designed to facilitate active learning through dynamic scaffolding, and presents a novel evaluation framework: Agent-in-the-Loop Epistemic Simulation. To address critical limitations in current educational agent literature, we introduce three core innovations: (1) Cognitive Bandwidth \& Friction Modelling (CBFM) to capture working memory dynamics and Zone of Proximal Development alignment; (2) Sycophancy Mitigation via Adversarial Student Scratchpad Probing, bypassing the ``Yes-Man'' bias of LLM agents; and (3) Tutor Policy Optimisation formulated as a Markov Decision Process (MDP). Using a cyclic state graph in LangGraph, we orchestrate interactions between a Socratic tutor, tracker, and guardrail, using an independent Evaluator LLM under a double-blind grading protocol to measure learning outcomes.
 \end{abstract}
 
-\renewcommand{\abstractname}{Acknowledgements}
-\begin{abstract}
-Thanks mum!
-\end{abstract}
+% \renewcommand{\abstractname}{Acknowledgements}
+% \begin{abstract}
+% Thanks mum!
+% \end{abstract}
 
 \tableofcontents
 \listoffigures
@@ -41,7 +41,8 @@ Thanks mum!
 \input{conclusion/conclusion.tex}
 \input{appendix/appendix.tex}
 
-\bibliographystyle{alpha}
+\renewcommand{\bibname}{References}
+\bibliographystyle{vancouver}
 \bibliography{bibs/sample}
 
 \end{document}
