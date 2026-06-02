@@ -1,0 +1,64 @@
+\chapter{Literature Review}
+\label{ch:litreview}
+
+\section{Critical Assessment of Prior Works}
+We synthesise and critically analyse the current state of student simulation and Socratic tutoring, highlighting achievements, trajectories, omissions, and how our work addresses these gaps.
+
+\subsection{Epistemic Fidelity vs. Surface Realism}
+Yuan et al. \cite{yuan2026towards} established the concept of Epistemic State Specification (ESS) for valid student simulation, arguing that simulators must prioritise the accuracy of the learner's knowledge and reasoning processes over mere dialogue fluency. However, their framework is primarily conceptual and assumes static learner capabilities. Scarlatos et al. \cite{scarlatos2026simulated} benchmarked various simulators, finding that standard prompting strategies suffer heavily from sycophancy bias and fail to maintain consistent misconception-driven belief states. To standardise evaluation across these dimensions, Maurya et al. \cite{maurya2025unifying} propose a unified pedagogical evaluation taxonomy consisting of eight dimensions (including mistake identification, mistake location, and revealing of the answer) and introduce the MRBench math tutoring benchmark. While MRBench provides a rigorous protocol for static dialogue evaluation, it is limited to mathematical domains and does not evaluate adaptive tutoring policies in interactive programming sandboxes.
+
+\subsection{Tutor-Student Agent Interactions}
+Frameworks like PETITE \cite{ozdemir2026enhancing} use asymmetric role assignment (a coder student and a helper tutor) to improve code generation success, but they focus purely on task completion rather than pedagogical simulation, lacking explicit models of human cognitive fatigue. SocraticLM \cite{liu2024socraticlm} fine-tunes a model on a Socratic dialogue dataset (SocraTeach) using a Dean-Teacher-Student pipeline, but the tutor agent remains vulnerable to answer leakage when students show persistent confusion. Similarly, the KELE framework \cite{peng2025kele} introduces a structured Socratic teaching methodology via a collaborative `Consultant-Teacher' multi-agent mechanism. While KELE structures dialogue stages using a rule system (SocRule) and demonstrates Socratic performance improvements by fine-tuning on a science-themed dialogue dataset (SocratDataset), its planning is guided by qualitative LLM heuristics. It lacks explicit mathematical formulations of the student's cognitive state dynamics (such as fatigue and friction) and does not mitigate the sycophancy bias of its student simulator. To control dialogue alignment more precisely, Petukhova \& Kochmar \cite{petukhova2025intent} expand Socratic taxonomies (such as MathDial) to 11 fine-grained pedagogical intents, demonstrating that training tutors on specific pedagogical goals improves response alignment. However, their intent-driven mapping is static and does not dynamically adjust to estimated student knowledge states or active misconceptions.
+
+\subsection{Behavioural Simulation \& Persona Modelling}
+Cunling Bian \cite{bian2026generative} utilises structured student interviews and multi-expert reflection to simulate learning behaviours (measured by the MSLQ questionnaire) with high accuracy, but does not deploy agents in a live, interactive dialogue environment. Classroom Simulacra \cite{xu2025classroom} incorporates online slide interactions and webcam-driven eye-tracking (GazeRecorder) to capture student engagement, but focuses on classroom-level dynamics rather than dyadic tutor policy optimisation. GPTeach \cite{markel2023gpteach} builds interactive TA training sandboxes using static student personas, but relies on a human teacher in the loop, preventing automated optimisation. 
+
+\section{Literature Synthesis Matrix}
+A comparative summary of these seminal works is detailed in Table~\ref{tab:literature_part1} and Table~\ref{tab:literature_part2}.
+
+\begin{table*}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{lYYYY}
+\toprule
+\textbf{Paper \& Citation} & \textbf{Methodology / Core Achievement} & \textbf{Trajectory} & \textbf{Omission / Limitation} & \textbf{Our Niche \& Novelty} \\
+\midrule
+Yuan et al. \cite{yuan2026towards} & Establishes Epistemic State Specification (ESS) for valid student simulation. & Formalising learner profiles in highly structured domains. & Assumes static learner capabilities and ignores cognitive fatigue. & Integrates dynamic Cognitive Bandwidth ($B_t$) equations. \\
+\midrule
+Scarlatos et al. \cite{scarlatos2026simulated} & Benchmarks simulated students; finds simple prompts are unreliable. & Supervised fine-tuning and DPO to calibrate profiles. & Focuses on evaluation; lacks active Socratic tutoring loops. & Builds cyclic Socratic loops with feedback guardrails. \\
+\midrule
+\"{O}zdemir \& Oztop \cite{ozdemir2026enhancing} & Tutor-student multi-agent interaction for code generation. & Peer-tutoring frameworks optimising code output. & Symmetric dialogues; lacks dynamic cognitive state tracking. & Models cognitive load ($B_t$) and friction ($F_t$) explicitly. \\
+\midrule
+Bian \cite{bian2026generative} & Interview-driven multi-expert reflection for learning behavioural simulation. & Using psychological domain experts to reflection-prompt. & Evaluates via static surveys (MSLQ); no active dialogue. & Deploys agents in dynamic LangGraph conversational loops. \\
+\midrule
+Liu et al. \cite{liu2024socraticlm} & Dean-Teacher-Student pipeline with SocraTeach dataset (35K dialogues). & Tuning models specifically for Socratic instruction. & Lacks safety check blocks; leaks answers easily. & Implements active Pydantic-enforced Guardrail Nodes. \\
+\midrule
+KELE \cite{peng2025kele} & Consultant-Teacher mechanism with SocRule (34 Socratic rules). & Structured, multi-stage rule-based Socratic teaching. & Science focus; lacks cognitive load models or sycophancy checks. & Targets programming education; models student bandwidth and scratchpad. \\
+\bottomrule
+\end{tabularx}
+\caption{Comparative Literature Synthesis Matrix (Part I)}
+\label{tab:literature_part1}
+\end{table*}
+
+\begin{table*}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{lYYYY}
+\toprule
+\textbf{Paper \& Citation} & \textbf{Methodology / Core Achievement} & \textbf{Trajectory} & \textbf{Omission / Limitation} & \textbf{Our Niche \& Novelty} \\
+\midrule
+Petukhova \& Kochmar \cite{petukhova2025intent} & Fine-grained taxonomy of 11 pedagogical intents. & Intent-annotated Socratic dialogue math training. & Math-specific; static intent mapping without active tracking. & Maps fine-grained Socratic actions ($\mathcal{A}$) dynamically via MDP. \\
+\midrule
+Xu et al. \cite{xu2025classroom} & Contextual student agents in virtual online classrooms. & Transferable Iterative Reflection (TIR) for courses. & Dyadic tutor optimisation is not explored. & Formulates tutoring strategy optimisation via MDP. \\
+\midrule
+GPTeach \cite{markel2023gpteach} & Simulated students with varied personas for TA training. & Safe sandbox environments for human teacher training. & No autonomous multi-agent tutor policy optimisation. & Automates Socratic tutoring policy optimisation (MDP). \\
+\midrule
+EduAgent \cite{xu2024eduagent} & Memory-augmented student agents to predict responses. & Structured memory logging across lessons. & Highly vulnerable to ``Yes-Man'' sycophancy bias. & Introduces Adversarial Scratchpad Probing checks. \\
+\midrule
+Maurya et al. \cite{maurya2025unifying} & 8-dimension unified taxonomy and MRBench benchmark. & Standardised assessment of LLM tutors on mathematics. & Focuses on evaluation; lacks active adaptive feedback loop. & Grounds evaluation annotation axes in structured Socratic categories. \\
+\bottomrule
+\end{tabularx}
+\caption{Comparative Literature Synthesis Matrix (Part II)}
+\label{tab:literature_part2}
+\end{table*}
+
