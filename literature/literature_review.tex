@@ -65,190 +65,51 @@ Maurya et al. \cite{maurya2025unifying} & 8-dimension unified taxonomy and MRBen
 \end{xltabular}
 \endgroup
 
-% \section{Technical Notation and Key Theories}
-% To bridge the structural gaps in current literature, specifically the static assumption of learner profiles \cite{yuan2026towards} and the lack of mathematical models of student attention and cognitive friction in multi-agent dialogue \cite{ozdemir2026enhancing}, we establish a formal, mathematically rigorous foundation. We model Socratic instruction as a Partially Observable Markov Decision Process (POMDP), tracking hidden student belief states, modelling cognitive bandwidth constraints based on Cognitive Load Theory, and decoupling student compliance from genuine mastery using an information-theoretic bottleneck.
+\section{Technical Notation and Key Theories}
+To bridge the structural gaps in current literature, specifically the static assumption of learner profiles \cite{yuan2026towards} and the lack of mathematical models of student attention and cognitive friction in multi-agent dialogue \cite{ozdemir2026enhancing}, we establish a formal, mathematically rigorous foundation. We model Socratic instruction as a Partially Observable Markov Decision Process (POMDP), tracking hidden student belief states, modelling cognitive bandwidth constraints based on Cognitive Load Theory, and decoupling student compliance from genuine mastery using an information-theoretic bottleneck.
 
-% \subsection{POMDP Formulation of Socratic Dialogue}
-% The Socratic interaction is formulated as a Partially Observable Markov Decision Process (POMDP)\footnote{Modelling the dialogue as a POMDP is crucial because a student's internal cognitive state, such as their actual conceptual mastery and specific active misconceptions, is latent and cannot be directly read by the tutor. The tutor must infer this state solely from the student's natural language responses (observations).} defined by the tuple $(\mathcal{S}, \mathcal{A}, \mathcal{O}, \mathcal{T}, \mathcal{Z}, \mathcal{R}, \gamma)$ where:
-
-% \begin{itemize}
-%     \item \textbf{State Space ($\mathcal{S}$):} The student's hidden true cognitive state at turn $t$ is defined as:
-%     \begin{equation}
-%         s_t^{\text{true}} = \left(\mathbf{K}_t^{\text{true}}, \mathbf{M}_t^{\text{true}}, B_t, F_t\right)
-%     \end{equation}\footnote{By including continuous cognitive variables ($B_t, F_t$) alongside discrete mastery and misconception states ($\mathbf{K}_t^{\text{true}}, \mathbf{M}_t^{\text{true}}$), the state space captures both the long-term knowledge structure and short-term working memory dynamics of the learner. Continuous variables capture immediate cognitive strain, while discrete vectors track cognitive schemas.}, where:
-%     \begin{itemize}
-%         \item $\mathbf{K}_t^{\text{true}} \in [0, 1]^m$ is the student's true latent mastery vector across $m$ core programming concepts, structured as a Directed Acyclic Graph (DAG) $\mathcal{G}_{\text{prereq}} = (\mathcal{V}, \mathcal{E})$ representing prerequisite dependencies.\footnote{Each element $K^{\text{true}}_{i, t}$ is continuous to represent degrees of conceptual mastery, where $0$ denotes complete lack of familiarity, and $1$ represents fluent independent recall and execution capability. The DAG edges $(j, i) \in \mathcal{E}$ define prerequisite constraints, such that mastery of parent concepts (e.g., control loops) is a gating condition for learning child concepts (e.g., nested iteration), preventing ungrounded mastery transitions.}
-%         \item $\mathbf{M}_t^{\text{true}} \in \{0, 1\}^k$ represents the presence or absence of $k$ active conceptual misconceptions.\footnote{Unlike mastery scores which are continuous, misconceptions are modelled here as discrete boolean flags ($\mathbf{M}_t^{\text{true}} \in \{0, 1\}^k$), representing specific faulty mental models (e.g., confusing assignment with cloning) that are either active or inactive. This supports targeted Socratic counterexamples to destabilise specific misconceptions.}
-%         \item $B_t \in [0, 1]$ represents the student's available Cognitive Bandwidth (working memory capacity).
-%         \item $F_t \in [0, 1]$ represents active Cognitive Friction (instructional alignment mismatch).
-%     \end{itemize}
-%     Unlike monolithic dialogue architectures that rely on ephemeral history logs, we maintain this high-dimensional state space using a centralised, versioned learner state buffer \cite{intellicode2025}. To resolve concurrency conflicts and prevent state synchronisation race conditions in multi-agent executions, we enforce a strict single-writer policy where only the Epistemic Tracker is authorised to commit write operations to the buffer, while the Socratic Tutor and Simulated Student nodes interface with state snapshots as pure, read-only functions \cite{elhaimeur2026itas}.
-%     \item \textbf{Action Space ($\mathcal{A}$):} The set of Socratic pedagogical directives available to the tutor agent (e.g., \textit{deconstruct\_code}, \textit{present\_analogy}, \textit{prompt\_prediction}, \textit{ask\_counterfactual}, \textit{explain\_concept}). This structured action space aligns with the fine-grained pedagogical intent taxonomy proposed by Petukhova \& Kochmar \cite{petukhova2025intent}, where setting specific pedagogical intents rather than coarse directives is shown to significantly improve response alignment and pedagogical effectiveness.
-%     \item \textbf{Observation Space ($\mathcal{O}$):} The space of natural language dialogue responses generated by the student, denoted $o_t$.
-%     \item \textbf{Transition Function ($\mathcal{T}$):} The probability distribution of transitioning to a new state $s_{t+1}$ given the current state $s_t$ and tutor action $a_t$:
-%     \begin{equation}
-%         \mathcal{T}(s_{t+1} \mid s_t, a_t) = P(s_{t+1} \mid s_t, a_t)
-%     \end{equation}
-%     which captures how the student's knowledge vector, misconceptions, bandwidth, and friction mutate in response to the tutor's pedagogical choices.\footnote{We note a temporal asymmetry in the state component transitions: while the knowledge vector $\mathbf{K}_{t+1}$ transitions as a consequence of the learning experience from the tutor's prompt $a_t$ at turn $t$, the cognitive variables $B_{t+1}$ and $F_{t+1}$ update immediately upon exposure to the next pedagogical prompt $a_{t+1}$ at turn $t+1$ to reflect the immediate cognitive load of the incoming explanation. This decoupling reflects the difference between long-term memory schema consolidation (slow dynamics) and working memory capacity (fast dynamics).}
-%     \item \textbf{Observation Function ($\mathcal{Z}$):} The probability of observing dialogue response $o_t$ given the transitioned state $s_t^{\text{true}}$ and the tutor's current action prompt $T_t$:
-%     \begin{equation}
-%         \mathcal{Z}(o_t \mid s_t^{\text{true}}, T_t) = P(o_t \mid s_t^{\text{true}}, T_t)
-%     \end{equation}
-%     which is parameterised directly by the student's generator response policy $\pi_{\text{student}}(o_t \mid T_t, \mathbf{K}_t^{\text{true}}, \mathbf{M}_t^{\text{true}}, B_t, F_t)$.\footnote{The observation probability conditions on the transitioned state $s_t^{\text{true}}$ and current action prompt $T_t$. In the dialogue setting, the student response $o_t$ is generated after receiving the tutor's prompt $T_t$, reflecting both the prompt structure and the student's new cognitive state $s_t^{\text{true}}$ resulting from that prompt.}
-%     \item \textbf{Reward Function ($\mathcal{R}$):} The feedback signal designed to optimise pedagogical efficiency, penalise tutor direct-answer leakage, and avoid cognitive overload:
-%     \begin{equation}
-%         R_t = \sum_{i=1}^m w_i \left(K^{\text{true}}_{i, t+1} - K^{\text{true}}_{i, t}\right) - w_f F_t - w_b (1 - B_t) - w_w W_t
-%     \end{equation}
-%     where $w_i > 0$ are concept importance weights, $w_f > 0$ is the cognitive friction penalty, $w_b > 0$ is the working memory overload penalty, and $w_w > 0$ is a severe penalty triggered if the Guardrail Node detects direct answer or code leakage ($W_t \in \{0, 1\}$). Because the student's true latent state is hidden from the tutor, the Socratic tutor policy is optimised to maximise the \textbf{expected reward} under the tracker's belief state $b_t(s)$\footnote{The expected reward function balances the primary educational goal (concept learning gain $\hat{K}_{i, t+1} - \hat{K}_{i, t}$) against secondary constraints (friction, bandwidth overload, and safety guardrails). In policy optimisation, this expected reward is used to train or prompt the tutor policy to discover the optimal Socratic trajectory, maximising cumulative expected discounted reward $\mathbb{E}[\sum_t \gamma^t \bar{R}_t]$}:
-%     \begin{equation}
-%         \bar{R}_t = \mathbb{E}_{s \sim b_t}[R_t(s, a_t)] = \sum_{i=1}^m w_i \left(\hat{K}_{i, t+1} - \hat{K}_{i, t}\right) - w_f \hat{F}_t - w_b (1 - \hat{B}_t) - w_w W_t
-%     \end{equation}
-%     where $\hat{K}_{i, t}$ is the expected concept mastery, and $\hat{B}_t, \hat{F}_t$ are the expected cognitive bandwidth and cognitive friction estimated by the tracker under the belief distribution.
+\subsection{POMDP Formulation of Socratic Dialogue}
+The Socratic interaction is formulated as a Partially Observable Markov Decision Process (POMDP)\footnote{Modelling the dialogue as a POMDP is crucial because a student's internal cognitive state, such as their actual conceptual mastery and specific active misconceptions, is latent and cannot be directly read by the tutor. The tutor must infer this state solely from the student's natural language responses (observations).} defined by the tuple $(\mathcal{S}, \mathcal{A}, \mathcal{O}, \mathcal{T}, \mathcal{Z}, \mathcal{R}, \gamma)$ where:
+\begin{itemize}
+    \item \textbf{State Space ($\mathcal{S}$):} The student's hidden true cognitive state at turn $t$ is defined as:
+    \begin{equation}
+        s_t^{\text{true}} = \left(\mathbf{K}_t^{\text{true}}, \mathbf{M}_t^{\text{true}}, B_t, F_t\right)
+    \end{equation}\footnote{By including continuous cognitive variables ($B_t, F_t$) alongside discrete mastery and misconception states ($\mathbf{K}_t^{\text{true}}, \mathbf{M}_t^{\text{true}}$), the state space captures both the long-term knowledge structure and short-term working memory dynamics of the learner. Continuous variables capture immediate cognitive strain, while discrete vectors track cognitive schemas.}, where:
+    \begin{itemize}
+        \item $\mathbf{K}_t^{\text{true}} \in [0, 1]^m$ is the student's true latent mastery vector across $m$ core programming concepts, structured as a Directed Acyclic Graph (DAG) $\mathcal{G}_{\text{prereq}} = (\mathcal{V}, \mathcal{E})$ representing prerequisite dependencies.\footnote{Each element $K^{\text{true}}_{i, t}$ is continuous to represent degrees of conceptual mastery, where $0$ denotes complete lack of familiarity, and $1$ represents fluent independent recall and execution capability. The DAG edges $(j, i) \in \mathcal{E}$ define prerequisite constraints, such that mastery of parent concepts (e.g., control loops) is a gating condition for learning child concepts (e.g., nested iteration), preventing ungrounded mastery transitions.}
+        \item $\mathbf{M}_t^{\text{true}} \in \{0, 1\}^k$ represents the presence or absence of $k$ active conceptual misconceptions.\footnote{Unlike mastery scores which are continuous, misconceptions are modelled here as discrete boolean flags ($\mathbf{M}_t^{\text{true}} \in \{0, 1\}^k$), representing specific faulty mental models (e.g., confusing assignment with cloning) that are either active or inactive. This supports targeted Socratic counterexamples to destabilise specific misconceptions.}
+        \item $B_t \in [0, 1]$ represents the student's available Cognitive Bandwidth (working memory capacity).
+        \item $F_t \in [0, 1]$ represents active Cognitive Friction (instructional alignment mismatch).
+    \end{itemize}
+    Unlike monolithic dialogue architectures that rely on ephemeral history logs, we maintain this high-dimensional state space using a centralised, versioned learner state buffer \cite{intellicode2025}. To resolve concurrency conflicts and prevent state synchronisation race conditions in multi-agent executions, we enforce a strict single-writer policy where only the Epistemic Tracker is authorised to commit write operations to the buffer, while the Socratic Tutor and Simulated Student nodes interface with state snapshots as pure, read-only functions \cite{elhaimeur2026itas}.
+    \item \textbf{Action Space ($\mathcal{A}$):} The set of Socratic pedagogical directives available to the tutor agent (e.g., \textit{deconstruct\_code}, \textit{present\_analogy}, \textit{prompt\_prediction}, \textit{ask\_counterfactual}, \textit{explain\_concept}). This structured action space aligns with the fine-grained pedagogical intent taxonomy proposed by Petukhova \& Kochmar \cite{petukhova2025intent}, where setting specific pedagogical intents rather than coarse directives is shown to significantly improve response alignment and pedagogical effectiveness.
+    \item \textbf{Observation Space ($\mathcal{O}$):} The space of natural language dialogue responses generated by the student, denoted $o_t$.
+    \item \textbf{Transition Function ($\mathcal{T}$):} The probability distribution of transitioning to a new state $s_{t+1}$ given the current state $s_t$ and tutor action $a_t$:
+    \begin{equation}
+        \mathcal{T}(s_{t+1} \mid s_t, a_t) = P(s_{t+1} \mid s_t, a_t)
+    \end{equation}
+    which captures how the student's knowledge vector, misconceptions, bandwidth, and friction mutate in response to the tutor's pedagogical choices.\footnote{We note a temporal asymmetry in the state component transitions: while the knowledge vector $\mathbf{K}_{t+1}$ transitions as a consequence of the learning experience from the tutor's prompt $a_t$ at turn $t$, the cognitive variables $B_{t+1}$ and $F_{t+1}$ update immediately upon exposure to the next pedagogical prompt $a_{t+1}$ at turn $t+1$ to reflect the immediate cognitive load of the incoming explanation. This decoupling reflects the difference between long-term memory schema consolidation (slow dynamics) and working memory capacity (fast dynamics).}
+    \item \textbf{Observation Function ($\mathcal{Z}$):} The probability of observing dialogue response $o_t$ given the transitioned state $s_t^{\text{true}}$ and the tutor's current action prompt $T_t$:
+    \begin{equation}
+        \mathcal{Z}(o_t \mid s_t^{\text{true}}, T_t) = P(o_t \mid s_t^{\text{true}}, T_t)
+    \end{equation}
+    which is parameterised directly by the student's generator response policy $\pi_{\text{student}}(o_t \mid T_t, \mathbf{K}_t^{\text{true}}, \mathbf{M}_t^{\text{true}}, B_t, F_t)$.\footnote{The observation probability conditions on the transitioned state $s_t^{\text{true}}$ and current action prompt $T_t$. In the dialogue setting, the student response $o_t$ is generated after receiving the tutor's prompt $T_t$, reflecting both the prompt structure and the student's new cognitive state $s_t^{\text{true}}$ resulting from that prompt.}
+    \item \textbf{Reward Function ($\mathcal{R}$):} The feedback signal designed to optimise pedagogical efficiency, penalise tutor direct-answer leakage, and avoid cognitive overload:
+    \begin{equation}
+        R_t = \sum_{i=1}^m w_i \left(K^{\text{true}}_{i, t+1} - K^{\text{true}}_{i, t}\right) - w_f F_t - w_b (1 - B_t) - w_w W_t
+    \end{equation}
+    where $w_i > 0$ are concept importance weights, $w_f > 0$ is the cognitive friction penalty, $w_b > 0$ is the working memory overload penalty, and $w_w > 0$ is a severe penalty triggered if the Guardrail Node detects direct answer or code leakage ($W_t \in \{0, 1\}$). Because the student's true latent state is hidden from the tutor, the Socratic tutor policy is optimised to maximise the \textbf{expected reward} under the tracker's belief state $b_t(s)$\footnote{The expected reward function balances the primary educational goal (concept learning gain $\hat{K}_{i, t+1} - \hat{K}_{i, t}$) against secondary constraints (friction, bandwidth overload, and safety guardrails). In policy optimisation, this expected reward is used to train or prompt the tutor policy to discover the optimal Socratic trajectory, maximising cumulative expected discounted reward $\mathbb{E}[\sum_t \gamma^t \bar{R}_t]$}:
+    \begin{equation}
+        \bar{R}_t = \mathbb{E}_{s \sim b_t}[R_t(s, a_t)] = \sum_{i=1}^m w_i \left(\hat{K}_{i, t+1} - \hat{K}_{i, t}\right) - w_f \hat{F}_t - w_b (1 - \hat{B}_t) - w_w W_t
+    \end{equation}
+    where $\hat{K}_{i, t}$ is the expected concept mastery, and $\hat{B}_t, \hat{F}_t$ are the expected cognitive bandwidth and cognitive friction estimated by the tracker under the belief distribution.
     
-%     The Socratic tutor policy $\pi(a_t \mid s'_t)$ is defined over a discretised representation of the expected cognitive state space $s'_t \in \mathcal{S}_{\text{discrete}}$ (which maps continuous estimates $\hat{\mathbf{K}}_t$ and active misconceptions $\hat{\mathbf{M}}_t$ to student archetypes). To guarantee computational and financial feasibility within the 14-week project timeline, avoiding the high token cost and slow convergence of online deep reinforcement learning, we optimise prompt-selection using Q-learning over this discrete state space. The tutor learns the action-value function $Q(s'_t, a_t)$ mapping states to discrete pedagogical prompt templates $a_t \in \mathcal{A}$ via the temporal-difference learning recurrence:
-%     \begin{equation}
-%         Q(s'_t, a_t) \gets (1 - \alpha_{\text{QL}}) Q(s'_t, a_t) + \alpha_{\text{QL}} \left( \bar{R}_t + \gamma \max_{a' \in \mathcal{A}} Q(s'_{t+1}, a') \right)
-%     \end{equation}
-%     where $\alpha_{\text{QL}} \in (0, 1)$ is the learning rate, and the Socratic policy selects prompts greedily: $\pi(s'_t) = \arg\max_{a \in \mathcal{A}} Q(s'_t, a)$.
-%     \item \textbf{Discount Factor ($\gamma \in [0, 1]$):} Weighs immediate learning gains against long-term instructional sustainability.
-% \end{itemize}
+    The Socratic tutor policy $\pi(a_t \mid s'_t)$ is defined over a discretised representation of the expected cognitive state space $s'_t \in \mathcal{S}_{\text{discrete}}$ (which maps continuous estimates $\hat{\mathbf{K}}_t$ and active misconceptions $\hat{\mathbf{M}}_t$ to student archetypes). To guarantee computational and financial feasibility within the 14-week project timeline, avoiding the high token cost and slow convergence of online deep reinforcement learning, we optimise prompt-selection using Q-learning over this discrete state space. The tutor learns the action-value function $Q(s'_t, a_t)$ mapping states to discrete pedagogical prompt templates $a_t \in \mathcal{A}$ via the temporal-difference learning recurrence:
+    \begin{equation}
+        Q(s'_t, a_t) \gets (1 - \alpha_{\text{QL}}) Q(s'_t, a_t) + \alpha_{\text{QL}} \left( \bar{R}_t + \gamma \max_{a' \in \mathcal{A}} Q(s'_{t+1}, a') \right)
+    \end{equation}
+    where $\alpha_{\text{QL}} \in (0, 1)$ is the learning rate, and the Socratic policy selects prompts greedily: $\pi(s'_t) = \arg\max_{a \in \mathcal{A}} Q(s'_t, a)$.
+    \item \textbf{Discount Factor ($\gamma \in [0, 1]$):} Weighs immediate learning gains against long-term instructional sustainability.
+\end{itemize}
 
-
-% \subsection{Epistemic Tracker Belief State Update}
-% Because the student's true knowledge state $s_t$ is hidden, the Socratic tutor cannot inspect $\mathbf{K}_t$ or $\mathbf{M}_t$ directly. Instead, the Epistemic Tracker Node ($A_e$) maintains and updates a probability distribution over states, known as the \textbf{Belief State} $b_t(s)$. Upon executing action $a_{t-1}$ and observing student response $o_{t-1}$, the belief state is updated via Bayesian filtering:
-% \begin{equation}
-%     b_{t}(s') = \eta \cdot \mathcal{Z}(o_{t-1} \mid s', a_{t-1}) \sum_{s \in \mathcal{S}} \mathcal{T}(s' \mid s, a_{t-1}) b_{t-1}(s)
-% \end{equation}
-% where $\eta = 1 / P(o_{t-1} \mid b_{t-1}, a_{t-1})$ is a normalising constant\footnote{The normalising constant $\eta$ is defined as $\left[\sum_{s'} \mathcal{Z}(o_{t-1} \mid s', a_{t-1}) \sum_{s} \mathcal{T}(s' \mid s, a_{t-1}) b_{t-1}(s)\right]^{-1}$, which ensures that the updated belief state $b_t(s')$ integrates (or sums) to $1$ over the state space $\mathcal{S}$, representing a valid probability distribution.}.
-
-% Because the continuous and discrete mixtures of the cognitive state space $\mathcal{S}$ make exact integration for the Bayesian normalising factor $\eta$ analytically and computationally intractable, we approximate the belief update using Sequential Monte Carlo (SMC) particle filtering. The belief state $b_t(s)$ is represented by a set of $M$ weighted particles $\{ (s_t^{[i]}, w_t^{[i]}) \}_{i=1}^M$. At each turn, the tracker updates the particles via a three-step cycle:
-% \begin{enumerate}
-%     \item \textbf{Prediction Step (Proposal Sampling):} For each particle $i \in \{1, \dots, M\}$, draw a candidate transitioned state from the tracker's subjective estimate of the transition dynamics model:
-%     \begin{equation}
-%         s_t^{[i]} \sim \hat{\mathcal{T}}\left(s_t \mid s_{t-1}^{[i]}, a_{t-1}\right)
-%     \end{equation}
-%     where $\hat{\mathcal{T}}$ represents the estimated transition model (e.g. parameterised by an estimated student learning rate $\hat{\alpha}_{\text{learn}}$).
-%     \item \textbf{Correction Step (Likelihood Weighting):} Update the particle weights based on the likelihood of the observed student dialogue response $o_{t-1}$. To evaluate this likelihood, the tracker runs a zero-shot semantic classifier LLM, denoted $\mathcal{M}_{\text{classify}}(o_{t-1})$, which parses the student's text to identify expressed concepts and misconceptions, outputting observed binary indicators $(\mathbf{K}^{\text{obs}}_{t-1} \in \{0, 1\}^m, \mathbf{M}^{\text{obs}}_{t-1} \in \{0, 1\}^k)$. To model classifier noise and prevent particle collapse from evaluation errors, we introduce soft classification error rates $\epsilon_k, \epsilon_m \in (0, 0.5)$. The likelihood of $o_{t-1}$ given particle state $s_t^{[i]} = (\mathbf{K}_t^{[i]}, \mathbf{M}_t^{[i]}, B_t^{[i]}, F_t^{[i]})$ is computed as:
-%     \begin{equation}
-%     \begin{aligned}
-%         w_t^{[i]} \propto w_{t-1}^{[i]} &\cdot \prod_{j=1}^m \left( (1 - \epsilon_k)^{1 - |K^{[i]}_{j, \text{bin}} - K^{\text{obs}}_{j, t-1}|} \cdot \epsilon_k^{|K^{[i]}_{j, \text{bin}} - K^{\text{obs}}_{j, t-1}|} \right) \\
-%         &\times \prod_{l=1}^k \left( (1 - \epsilon_m)^{1 - |M^{[i]}_{l, t} - M^{\text{obs}}_{l, t-1}|} \cdot \epsilon_m^{|M^{[i]}_{l, t} - M^{\text{obs}}_{l, t-1}|} \right)
-%     \end{aligned}
-%     \end{equation}
-%     where $K^{[i]}_{j, \text{bin}} = \mathbb{I}(K^{[i]}_{j, t} \ge 0.5)$ is the binarised particle mastery, and $|M^{[i]}_{l, t} - M^{\text{obs}}_{l, t-1}|$ is the absolute difference representing matching ($0$) or mismatching ($1$) misconception status.
-%     \item \textbf{Normalising and Resampling:} Normalise the weights such that $\sum_{i=1}^M w_t^{[i]} = 1$. To prevent particle collapse, if the effective sample size $N_{\text{eff}} = \left[\sum_{i=1}^M (w_t^{[i]})^2 \right]^{-1}$ falls below a critical threshold $\theta_{\text{resample}} = 0.5 M$, we draw $M$ new particles with replacement from $\{s_t^{[i]}\}_{i=1}^M$ with probabilities proportional to $\{w_t^{[i]}\}_{i=1}^M$, and reset the weights to $w_t^{[i]} = 1/M$.
-% \end{enumerate}
-
-% From this belief state, the tracker extracts the expected latent mastery vector $\hat{\mathbf{K}}_t \in [0, 1]^m$ and the most probable active misconceptions $\hat{\mathbf{M}}_t \in \{0, 1\}^k$\footnote{The expectation $\mathbb{E}_{b_t}[\mathbf{K}]$ represents a weighted average of conceptual mastery over the tracker's probability distribution of student profiles. The $\arg\max$ represents finding the mode of the belief distribution over active misconceptions, reflecting the tracker's primary hypothesis regarding the student's conceptual bugs.}:
-% \begin{align}
-%     \hat{\mathbf{K}}_t &= \mathbb{E}_{b_t}[\mathbf{K}] = \int_{\mathcal{S}} \mathbf{K} \, b_t(s) \, ds \\
-%     \hat{\mathbf{M}}_t &= \arg\max_{\mathbf{M}} P(\mathbf{M} \mid b_t)
-% \end{align}
-% These estimated states $(\hat{\mathbf{K}}_t, \hat{\mathbf{M}}_t)$, representing the tutor's current model of the student, are passed to the Socratic Tutor node to plan the next pedagogical action $a_t$, decoupling the tracker's internal estimates from the student's true latent state $s_t$.
-
-% To address the risk of epistemic miscalibration—where planning agents evaluate action outcomes using uncalibrated local expectations \cite{calibration2026}—we implement a planning alignment check. Let $H(b_t)$ be the joint Shannon entropy of the belief distribution over particle weights $w_t$:
-% \begin{equation}
-%     H(b_t) = -\sum_{i=1}^M w_t^{[i]} \log_2 w_t^{[i]}
-% \end{equation}
-% When $H(b_t) > \theta_{\text{entropy}}$ (indicating high tracker uncertainty due to uninformative student response history), the Socratic Tutor calibrates its action-selection policy. Rather than selecting prompts greedily based on the potentially miscalibrated mean estimate $\hat{\mathbf{K}}_t$, the tutor increases its exploration rate or executes a targeted diagnostic probe $P_t$ aligned with the concept dependency path validation rules in $\mathcal{G}_{\text{prereq}}$ \cite{zeng2025graphmasal}, ensuring that planning remains mathematically consistent with tracker confidence.
-
-
-% \subsection{Cognitive Bandwidth \& Friction Modelling (CBFM)}
-% To ground the transitions of $B_t$ and $F_t$ in human learning limitations, we incorporate Sweller's Cognitive Load Theory. Working memory has a finite cognitive capacity. The available \textbf{Cognitive Bandwidth} $B_t \in [0, 1]$ evolves dynamically at turn $t$\footnote{In this formulation, the term $\exp(-\lambda_c N_{\text{concepts}, t} - \lambda_l L_t)$ acts as a discount factor that reduces bandwidth based on the complexity and length of the tutor's prompt. The additive term $\mu_r (1 - B_{t-1})$ represents the student's cognitive recovery, which scales with the current level of mental fatigue (i.e., larger recovery when bandwidth is low).}:
-% \begin{equation}
-%     B_t = B_{t-1} \cdot \exp\left(-\lambda_c N_{\text{concepts}, t} - \lambda_l L_t\right) + \mu_r \left(1 - B_{t-1}\right)
-% \end{equation}
-% where $N_{\text{concepts}, t}$ represents the volume of new conceptual information introduced at turn $t$, $L_t$ is the length of the tutor's prompt in characters, $\lambda_c, \lambda_l > 0$ are decay constants representing cognitive decay, and $\mu_r \in [0, 1]$ represents the recovery rate representing cognitive rest per turn.\footnote{These parameters ($\lambda_c, \lambda_l, \mu_r$) can be empirically calibrated using historical student-tutor dialogue datasets. For instance, the cognitive decay constants $\lambda_c$ and $\lambda_l$ reflect the average decrease in comprehension score per unit of text or concepts introduced, while the recovery rate $\mu_r$ models the baseline cognitive reset between conversational turns.} 
-
-% \subsubsection{Steady-State Stability Analysis}
-% We prove that under a Socratic policy (characterised by short, focused prompts where $N_{\text{concepts}, t}$ and $L_t$ are small), $B_t$ converges to a stable, non-zero steady-state value $B^*$, preventing cognitive breakdown. Let the cognitive decay factor under a steady pedagogical style be $D = \exp\left(-\lambda_c N - \lambda_l L\right)$, where $N$ and $L$ are the average conceptual density and prompt length, respectively. The recurrence relation is:
-% \begin{equation}
-%     B_t = B_{t-1} D + \mu_r - \mu_r B_{t-1} = B_{t-1}(D - \mu_r) + \mu_r
-% \end{equation}
-% For stability and convergence, the coefficient must satisfy $|D - \mu_r| < 1$. Because $D \in (0, 1]$ and $\mu_r \in [0, 1]$, this condition is universally satisfied for all valid physical parameters\footnote{Strict stability and uniqueness of the fixed point require $|D - \mu_r| < 1$, which is guaranteed when $\mu_r \in (0, 1)$ or $D > 0$. This avoids the boundary case ($D=0, \mu_r=1$) which leads to persistent periodic oscillation between $B_t=0$ and $B_{t+1}=1$.}. Solving for the fixed point $B^* = B^* (D - \mu_r) + \mu_r$ yields the steady-state cognitive bandwidth:
-% \begin{equation}
-%     B^* = \frac{\mu_r}{\mu_r + 1 - D} = \frac{\mu_r}{\mu_r + 1 - \exp\left(-\lambda_c N - \lambda_l L\right)}
-% \end{equation}
-% Under a direct-answering baseline or an overloaded explanation policy ($L \to \infty, D \to 0$), the student's cognitive bandwidth collapses to $B^* = \frac{\mu_r}{\mu_r + 1}$. Conversely, Socratic dialogue ($L \to 0, D \to 1$) maintains optimal bandwidth $B^* \to 1.0$. If $B_t$ drops below a critical threshold $\theta_{\text{overload}} = 0.3$, the student's response policy shifts to output confusion markers, blocking learning.
-
-% We model \textbf{Cognitive Friction} $F_t \in [0, 1]$ representing the pedagogical alignment with the student's active Zone of Proximal Development (ZPD) \cite{bjork1994memory}:
-% \begin{equation}
-%     F_t = 1 - \exp\left(-\beta \cdot \max\left(0, Z_{\text{tutor}} - Z_{\text{student}, t}\right)\right)
-% \end{equation}
-% where $Z_{\text{tutor}} \in [0, 1]$ represents the difficulty level of the tutor's prompt, $Z_{\text{student}, t} \in [0, 1]$ is the student's concept-specific competence level\footnote{We define the student's competence level for the targeted concept $q_t$ at turn $t$ as $Z_{\text{student}, t} = K^{\text{true}}_{q_t, t}$, which represents their specific capability on the concept being introduced, avoiding the issue where high mastery in unrelated concepts hides a concept-specific deficit.}, and $\beta > 0$ is a sensitivity constant. High friction ($F_t \to 1$) indicates that the tutor has exceeded the student's ZPD, causing cognitive overload and impeding knowledge transfer.\footnote{This asymmetric friction model assumes that difficulty below the student's competence ($Z_{\text{tutor}} \le Z_{\text{student}, t}$) generates zero cognitive friction (though it may reduce learning speed), whereas difficulty above competence ($Z_{\text{tutor}} > Z_{\text{student}, t}$) causes exponential growth in friction as the gap widens. The parameter $\beta$ controls the steepness of this friction curve.}
-
-% \subsection{Information-Theoretic Modelling of Sycophancy (Information Bottleneck)}
-% Standard LLM-based student simulators suffer from the ``Yes-Man'' sycophancy bias \cite{scarlatos2026simulated}, where the student agent's dialogue generator policy $\pi_{\text{student}}$ shifts to align with the tutor's prompt $T_t$, falsely claiming mastery to minimise conversational friction. We define this behaviour as minimising the Kullback-Leibler (KL) divergence between the student's public response and the tutor's expectations\footnote{This KL divergence minimisation is a direct consequence of standard reinforcement learning from human feedback (RLHF) and supervised fine-tuning, where LLMs are trained to maximise response likelihood under conversational contexts that reward politeness, helpfulness, and alignment with user assumptions.}:
-% \begin{equation}
-%     D_{\text{KL}}\left(\pi_{\text{student}}(o_t \mid T_t) \parallel \pi_{\text{tutor}}(o_t \mid T_t)\right) \to 0
-% \end{equation}
-% This conversational alignment decouples the student's public dialogue from their true latent knowledge state $\mathbf{K}_t^{\text{true}}$, making standard dialogue-based assessment invalid.\footnote{Here, $\pi_{\text{tutor}}(o_t \mid T_t)$ is the tutor's implicit expectation of a compliant response. The sycophancy bias occurs when the student's response distribution aligns with this expected distribution to avoid the conversational effort of disagreement, even if it contradicts the student's true internal state $\mathbf{K}_t^{\text{true}}$.} Because LLM agents are pre-trained on passive internet text, multi-turn synthetic dialogue simulations run the risk of acting as observational studies rather than controlled experiments. The simulator's latent persona attributes stochastically drift (user drift) in response to the Socratic interventions, confounding the evaluation of learning gains \cite{lin2026illusion}.
-
-
-% To mitigate this, we introduce the \textbf{Adversarial Information Bottleneck} using a private scratchpad environment. Let $P_t$ be a private diagnostic probe administered by an independent Evaluator node. The student agent's public response policy is constrained by both the binary outcome of the private probe check and their current cognitive bandwidth\footnote{Mathematically, the student response policy $\pi_{\text{student}}$ is formulated as a conditional mixture distribution. The indicator functions partition the state space: if the cognitive bandwidth is above $\theta_{\text{overload}}$, the response is drawn from either $\pi_{\text{mastery}}$ (conditioned on passing the diagnostic probe) or $\pi_{\text{misconception}}$ (expressing the active misconceptions $\mathbf{M}_t^{\text{true}}$). If the bandwidth drops below the threshold, the student's output is dominated by $\pi_{\text{overloaded}}$, expressing confusion and fatigue regardless of their actual conceptual mastery.}:
-
-% \begin{equation}
-% \begin{split}
-%     \pi_{\text{student}}(o_t \mid T_t, \mathbf{K}_t^{\text{true}}, \mathbf{M}_t^{\text{true}}, B_t, F_t) = {}& \mathbb{I}(B_t \ge \theta_{\text{overload}}) \left[ \mathbb{I}(\text{Pass}(P_t)) \pi_{\text{mastery}}(o_t \mid T_t) \right. \\
-%     & \left. + \left(1 - \mathbb{I}(\text{Pass}(P_t))\right) \pi_{\text{misconception}}(o_t \mid T_t, \mathbf{M}_t^{\text{true}}) \right] \\
-%     & + \mathbb{I}(B_t < \theta_{\text{overload}}) \pi_{\text{overloaded}}(o_t \mid T_t, B_t, F_t)
-% \end{split}
-% \end{equation}
-% where $\mathbb{I}$ is the indicator function, $\pi_{\text{mastery}}$ is the response policy representing conceptual clarity, $\pi_{\text{misconception}}$ is the policy restricted to expressing confusion, and $\pi_{\text{overloaded}}$ is the policy expressing cognitive overload and fatigue. 
-
-% To formalise the transition dynamics of the student's true latent states under this scaffolding and probing protocol, we define the updates for the mastery vector $\mathbf{K}_t^{\text{true}}$ and the misconception vector $\mathbf{M}_t^{\text{true}}$ following tutor instruction on concept $q_t \in \{1, \dots, m\}$ and a diagnostic probe $P_t$ targeting misconception $c_t \in \{1, \dots, k\}$\footnote{This update formulation models targeted learning driven by pedagogical interaction rather than test outcomes. Concept mastery is reinforced when the tutor targets concept $q_t$, scaled by available cognitive bandwidth $B_t$ and ZPD alignment $(1 - F_t)$, gated by the student's prerequisite concept masteries. Active misconceptions are toggled based on diagnostic probe outcomes.}:
-% \begin{equation}
-%     K^{\text{true}}_{i, t+1} = \begin{cases}
-%     K^{\text{true}}_{i, t} + \alpha_{\text{learn}} \left(1 - K^{\text{true}}_{i, t}\right) (1 - F_t) B_t \prod_{j \in \text{Parents}(i)} K^{\text{true}}_{j, t} & \text{if } i = q_t \\
-%     K^{\text{true}}_{i, t} & \text{otherwise}
-%     \end{cases}
-% \end{equation}
-% where $\alpha_{\text{learn}} \in (0, 1)$ is the student's intrinsic learning rate, and
-% \begin{equation}
-%     M^{\text{true}}_{j, t+1} = \begin{cases}
-%     M^{\text{true}}_{j, t} & \text{if } B_t < \theta_{\text{overload}} \\
-%     0 & \text{if } B_t \ge \theta_{\text{overload}} \text{ and } j = c_t \text{ and } \text{Pass}(P_t) \\
-%     1 & \text{if } B_t \ge \theta_{\text{overload}} \text{ and } j = c_t \text{ and } \text{Fail}(P_t) \\
-%     M^{\text{true}}_{j, t} & \text{otherwise}
-%   \end{cases}
-% \end{equation}
-
-% The binary outcome of the private probe $\text{Pass}(P_t) \in \{0, 1\}$ is a stochastic process modelled via a Multi-dimensional Item Response Theory (MIRT) formulation with a cognitive capacity gate:
-% \begin{equation}
-% \begin{split}
-%     P\left(\text{Pass}(P_t) = 1 \mid \mathbf{K}_t^{\text{true}}, \mathbf{M}_t^{\text{true}}, B_t\right) = {}& \left[ c_{\text{guess}} + \frac{1 - c_{\text{guess}}}{1 + \exp\left( -\alpha_{q_t} (K^{\text{true}}_{q_t, t} - d_{P_t}) + \gamma_{c_t} M^{\text{true}}_{c_t, t} \right)} \right] \\
-%     & \cdot \mathbb{I}(B_t \ge \theta_{\text{overload}})
-% \end{split}
-% \end{equation}
-% where $\alpha_{q_t} > 0$ represents the item discrimination parameter for target concept $q_t$, $d_{P_t} \in [0, 1]$ represents the probe difficulty, $\gamma_{c_t} \ge 0$ is the cognitive penalty associated with the active misconception $c_t$, and $c_{\text{guess}} \in [0, 1]$ is the guessing probability under lack of mastery (typically set to $0.05$ for free-response code generation).
-
-% By forcing the public response to pass through this information bottleneck and defining explicit transitions, we ensure that surface dialogue features reflect true epistemic states, eliminating sycophancy bias. The detailed execution flow of the Simulated Student node, demonstrating the private sandbox execution and state updates, is illustrated in Figure~\ref{fig:bottleneck}.
-
-% \begin{figure}[htbp]
-% \centering
-% \begin{tikzpicture}[node distance=1.6cm, >=stealth]
-%     \node (start) [startstop] {Receive Prompt $T_t$};
-%     \node (check) [decision, below=0.8cm of start] {Bandwidth $B_t < \theta_{\text{overload}}$?};
-%     \node (overloaded) [process, right=1.2cm of check] {Output $o_t \sim \pi_{\text{overloaded}}$};
-%     \node (probe) [process, below=0.8cm of check] {Administer Probe $P_t$};
-%     \node (scratch) [process, below=0.8cm of probe] {Private Sandbox Execution};
-%     \node (pass) [decision, below=0.8cm of scratch] {Answer Correct?};
-%     \node (mastery) [process, left=1.5cm of pass, yshift=-1.2cm] {Update $K^{\text{true}} \uparrow$, $M^{\text{true}} \gets 0$\\Output $o_t \sim \pi_{\text{mastery}}$};
-%     \node (misc) [process, right=1.5cm of pass, yshift=-1.2cm] {Maintain $K^{\text{true}}$, $M^{\text{true}} \gets 1$\\Output $o_t \sim \pi_{\text{misconception}}$};
-%     \node (end) [startstop, below=2.2cm of pass] {End Student Node};
-    
-%     \draw [arrow] (start) -- (check);
-%     \draw [arrow] (check) -- node[midway, above] {Yes} (overloaded);
-%     \draw [arrow] (check) -- node[midway, left] {No} (probe);
-%     \draw [arrow] (probe) -- (scratch);
-%     \draw [arrow] (scratch) -- (pass);
-%     \draw [arrow] (pass) -| (mastery) node[pos=0.25, above] {Yes};
-%     \draw [arrow] (pass) -| (misc) node[pos=0.25, above] {No};
-%     \draw [arrow] (mastery) |- (end);
-%     \draw [arrow] (misc) |- (end);
-%     \draw [arrow] (overloaded.east) -- ++(1.8,0) |- (end);
-% \end{tikzpicture}
-% \caption{Adversarial Probing and Sandbox Execution inside the Simulated Student Node.}
-% \label{fig:bottleneck}
-% \end{figure}
 
