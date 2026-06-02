@@ -1,1 +1,128 @@
-\chapter{PROJECT X}
+\chapter{Project Plan}
+\label{ch:plan}
+
+
+\section{Project Timeline and Gantt Schedule}
+The remaining project execution is divided into four distinct phases spanning June 2026 to September 2026:
+\begin{itemize}
+    \item \textbf{Phase 1: Agent Graph Implementation (June 1 - June 30, 2026)}
+    Build the LangGraph execution cycle. Configure cloud API endpoints for open-weights models (using OpenRouter/Cerebras with \texttt{llama-3.1-8b-instruct} and \texttt{qwen-2.5-14b-instruct}) and validate Pydantic output schemas. Define the system prompts for the Socratic Tutor, Epistemic Tracker, and Pedagogical Guardrail.
+    \item \textbf{Phase 2: Cognitive and Adversarial Integration (July 1 - July 31, 2026)}
+    Implement the math-based Cognitive Bandwidth ($B_t$) and Cognitive Friction ($F_t$) update loops. Design the private adversarial scratchpad probe execution layer, ensuring the student node resolves misconceptions conditionally on probe pass/fail states.
+    \item \textbf{Phase 3: Automated Evaluation Suite (August 1 - August 20, 2026)}
+    Build the double-blind evaluator LLM harness. Integrate the shuffle-and-grade pipeline to anonymise pre- and post-tests. Write the MDP reward optimisation loops using policy simulation scripts.
+    \item \textbf{Phase 4: Run Experiments \& Thesis Write-up (August 21 - September 15, 2026)}
+    Run batch simulations comparing the Socratic MAS against direct-answering baselines. Compile learning gain ($g$), efficiency ($\eta$), and sycophancy rate statistics. Write and polish the MSc thesis.
+\end{itemize}
+
+\section{Quantitative Definitions of Success}
+We establish success criteria to evaluate our system against standard ITS architectures:
+\begin{enumerate}
+    \item \textbf{Normalised Learning Gain ($g$):} The Socratic MAS must achieve an average normalised gain $g \ge 0.35$ across 100 batch runs, indicating statistically significant conceptual learning.
+    \item \textbf{Sycophancy Rate (Yes-Man Bias):} The student simulator's sycophancy rate (falsely claiming mastery without passing the scratchpad probe) must remain under $5\%$, compared to $\ge 40\%$ for baseline prompted agents.
+    \item \textbf{Zero Guardrail Leakage:} The Pedagogical Guardrail must block and trigger rewrites for $100\%$ of tutor attempts to output raw target code or final answers.
+\end{enumerate}
+
+\section{Rigorous Statistical Evaluation Framework}
+To validate the effectiveness of our Socratic Multi-Agent System (MAS), we establish a comprehensive statistical testing and evaluation pipeline. This framework moves beyond qualitative comparisons to perform rigorous hypothesis testing, quantifying cognitive growth and measuring simulation fidelity.
+
+\subsection{Statistical Hypothesis Testing}
+We formulate three primary pairs of null ($H_0$) and alternative ($H_1$) hypotheses corresponding to our core research questions:
+
+\begin{enumerate}
+    \item \textbf{Hypothesis 1: Educational Efficacy (RQ2)}
+    \begin{itemize}
+        \item $H_0^{(1)}$: There is no difference in the normalised learning gains ($g$) between student agents trained using the cyclic Socratic MAS ($\mu_{\text{Socratic}}$) and those interacting with a baseline direct-answering or linear prompt agent ($\mu_{\text{baseline}}$).
+        \item $H_1^{(1)}$: The cyclic Socratic MAS yields statistically significant higher normalised learning gains than the baseline, i.e., $\mu_{\text{Socratic}} > \mu_{\text{baseline}}$.
+    \end{itemize}
+    
+    \item \textbf{Hypothesis 2: Sycophancy Mitigation (RQ3)}
+    \begin{itemize}
+        \item $H_0^{(2)}$: The sycophancy rate (the proportion of turns where the student agent falsely claims mastery without passing the private scratchpad probe, $p_{\text{sycophancy}}$) is equivalent or higher in the Socratic MAS with Adversarial Scratchpad Probing compared to standard prompted student simulators.
+        \item $H_1^{(2)}$: The introduction of the Adversarial Information Bottleneck significantly reduces the sycophancy rate compared to standard student simulators, i.e., $p_{\text{Socratic}} < p_{\text{standard}}$.
+    \end{itemize}
+    
+    \item \textbf{Hypothesis 3: Guardrail Leakage Resilience (RQ1)}
+    \begin{itemize}
+        \item $H_0^{(3)}$: The proportion of direct answer or code leaks ($p_{\text{leakage}}$) in the dialogue is equal to or higher for the guardrailed Socratic agent than for a standard prompted tutor.
+        \item $H_1^{(3)}$: The Pydantic-enforced Guardrail Node reduces the answer leakage rate to zero, i.e., $p_{\text{leakage, Socratic}} = 0$.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Experimental Baselines and Control Configurations}
+To isolate the educational impact of our Socratic Multi-Agent System (MAS), we evaluate its performance against two control baselines running on the same underlying frontier LLMs:
+\begin{itemize}
+    \item \textbf{Direct-Answering Assistant (Baseline 1):} Represents standard commercial helper configurations. The model is prompted to be a helpful programming assistant, delivering immediate direct answers, explanations, and code blocks to student queries.
+    \item \textbf{Prompted Socratic Assistant (Baseline 2):} Represents the standard zero-shot prompt engineering approach. The model is configured with a rich system prompt directing it to act Socrates-style (e.g., asking scaffolded questions and refusing to output code). However, it runs as a single agent *without* the decoupled Epistemic Tracker state buffer, CBFM cognitive capacity checks, or the Pedagogical Guardrail node.
+\end{itemize}
+By comparing against Baseline 2, we directly test the thesis that Socratic pedagogy requires a closed-loop multi-agent architecture with decoupled tracking and hard guardrail auditing. We hypothesize that Baseline 2 will suffer from high answer leakage rates under conversational pressure, epistemic state drift, and sycophancy validation failures, which our Socratic MAS mitigates.
+
+\subsection{Statistical Verification Metrics}
+To evaluate these hypotheses, we specify the following statistical tests and effect size metrics, which will be computed across $N = 100$ independent simulated dialogue cohorts:
+\begin{itemize}
+    \item \textbf{Paired $t$-Test / Wilcoxon Signed-Rank Test:} For each student agent $k \in \{1, \dots, N\}$, we measure the change in the student's generalised competence score from pre-test ($t=0$) to post-test ($t=T$), defined as $d_k = S_{\text{post}, k} - S_{\text{pre}, k} = \frac{1}{m} \sum_{i=1}^m \left( K^{\text{true}}_{i, T, k} - K^{\text{true}}_{i, 0, k} \right)$. Since the distribution of mastery gains may not be normal, we will conduct a Wilcoxon signed-rank test. If the normality assumption is satisfied (via Shapiro-Wilk testing, $p > 0.05$), we will run a two-tailed paired Student's $t$-test:
+    \begin{equation}
+        t = \frac{\bar{d}}{s_d / \sqrt{N}}
+    \end{equation}
+    where $\bar{d} = \frac{1}{N} \sum_{k=1}^N d_k$ is the sample mean of the difference, and $s_d = \sqrt{\frac{1}{N-1} \sum_{k=1}^N (d_k - \bar{d})^2}$ is the sample standard deviation of the differences.
+    \item \textbf{Cohen's $d$ Effect Size:} To assess the practical significance of Socratic scaffolding relative to direct answering, we compute the standardised effect size Cohen's $d$:
+    \begin{equation}
+        d = \frac{\bar{g}_{\text{Socratic}} - \bar{g}_{\text{baseline}}}{s_{\text{pooled}}}
+    \end{equation}
+    where $s_{\text{pooled}} = \sqrt{\frac{(N_1-1)s_1^2 + (N_2-1)s_2^2}{N_1 + N_2 - 2}}$ is the pooled standard deviation. We target a large effect size of $d \ge 0.8$.
+    \item \textbf{Dialogue $n$-gram Information Entropy:} To analyse the lexical and semantic diversity of the generated Socratic dialogues, we compute the Shannon entropy $H_n(X)$ over the $n$-gram token distributions across conversational turns:
+    \begin{equation}
+        H_n(X) = -\sum_{w \in \mathcal{W}_n} P(w) \log_2 P(w)
+    \end{equation}
+    where $\mathcal{W}_n$ is the set of unique $n$-grams of length $n$ extracted from the dialogue corpus, and $P(w)$ is the empirical probability of $n$-gram $w$. We track unigram ($H_1$) and bigram ($H_2$) entropies; higher entropy indicates richer pedagogical vocabulary diversity and a mitigation of repetitive prompts and cyclic agent loops.
+\end{itemize}
+
+\subsection{Causal Validation and Benchmark Alignment}
+To ensure the cognitive realism of our student simulators and prevent the evaluation from reflecting user drift or sycophancy bias, we formalise our batch dialogue cohort runs using a causal inference validation protocol \cite{lin2026illusion}:
+\begin{enumerate}
+    \item \textbf{Negative Control Outcomes:} We track invariant student features (specifically initial CS background profile, demographic register, and baseline personality traits) throughout the dialogue turns. These attributes must remain statistically invariant under tutor Socratic intervention, verified via two-sided $t$-tests ($p > 0.05$).
+    \item \textbf{Confounder Adjustments:} We explicitly control for model-induced persona drift by adjusting the student prompt specifications with targeted background confounders \cite{lin2026illusion}, isolating the Socratic intervention's true pedagogical effect from conversational alignment.
+\end{enumerate}
+Furthermore, rather than relying on ungrounded cognitive load update parameters, we calibrate our CBFM variables ($\lambda_c, \lambda_l, \mu_r, \beta$) by matching their decay and recovery trajectories against historical student-tutor dialogue profiles in the \textit{MathDial} \cite{macina2023mathdial} and \textit{SocraTeach} \cite{liu2024socraticlm} corpuses. To contextualize our Socratic Tutor's capabilities within current state-of-the-art architectures, we benchmark its dialogic moves and evaluations against standard benchmarks, reporting its dialogue success rates on the \textit{SocraticBench} \cite{gatti2026socratic} and open-ended pedagogical scores on the \textit{MathTutorBench} \cite{mathtutorbench2025} pipelines.
+
+\subsection{Human Validation and Inter-Rater Reliability}
+To validate the reliability of our automated double-blind grading pipeline and the Evaluator LLM, we establish a human validation benchmarking suite. 
+\begin{enumerate}
+    \item \textbf{Gold-Standard Dataset:} A subset of 30 randomly sampled tutor-student interaction transcripts (representing 150 dialogue turns) will be annotated by two independent domain experts (CS teaching assistants).
+    \item \textbf{Annotation Protocol:} The human raters will blindly evaluate transcripts along three axes: (a) Student Mastery (binary indicator matching scratchpad outcomes), (b) Tutor Answer Leakage (presence/absence), and (c) Socratic Quality (1-5 Likert scale measuring scaffolding appropriateness). Our annotation axes adapt elements of the unified pedagogical evaluation taxonomy proposed by Maurya et al. \cite{maurya2025unifying}, mapping their Mistake Identification, Revealing of the Answer, and Providing Guidance dimensions directly to automated and human Socratic dialogue rating rubrics.
+    \item \textbf{Cohen's Kappa ($\kappa$) Analysis:} Inter-rater agreement between the two human raters, and between the human consensus and the Evaluator LLM, will be quantified using Cohen's Kappa coefficient:
+    \begin{equation}
+        \kappa = \frac{p_o - p_e}{1 - p_e}
+    \end{equation}
+    where $p_o$ is the relative observed agreement and $p_e$ is the hypothetical probability of chance agreement. We define the threshold for automated evaluator validation as achieving substantial agreement, denoted by $\kappa \ge 0.60$\footnote{A threshold of $\kappa \ge 0.60$ is standard in educational data mining and multi-agent grading evaluation literature to demonstrate that agent-human agreement is moderate-to-substantial and statistically significant, exceeding typical noise thresholds.}.
+
+\end{enumerate}
+
+\section{Pathway to Real-World Student Deployment}
+While this dissertation utilises a multi-agent simulation framework to solve the high cost and safety concerns of early-stage tutor policy optimisation, the ultimate objective of this architecture is direct deployment to human students. We outline the technical and pedagogical pathway for transitioning the Socratic tutoring agent from simulation to a live, human-in-the-loop educational tool:
+
+\subsection{Decoupled API Middleware and Client Integration}
+The system architecture separates the agent reasoning backend (FastAPI and LangGraph) from the student interaction client (React frontend) using WebSockets and REST APIs, as detailed in our system blueprint. The student node in the LangGraph execution cycle is replaced by a native breakpoint:
+\begin{equation}
+    \text{GraphState}_t \xrightarrow{\text{interrupt\_before} = [A_s]} \text{Pause} \to \text{Publish}(T_t, C_t) \to \text{Await}(o_t^{\text{human}})
+\end{equation}
+When the graph hits the student node, it interrupts execution, saves the conversational and cognitive state to a PostgreSQL checkpointer (Supabase), and publishes the Socratic prompt $T_t$ and target task $C_t$ to the student's web browser. The human student reads the scaffolding, writes code inside a browser-based Monaco editor, and submits the response.
+
+\subsection{Zero-Trust Sandboxed Execution Environment}
+To ensure host system security when deploying to real-world students, execution of user-submitted code cannot run on the server's main host memory. The middleware routes student scripts directly to isolated on-demand microVM sandboxes (E2B or Modal). These sandboxes execute the student's Python code, return standard output, standard error, and assertion failures, and spin down. The output is then ingested by the Epistemic Tracker to calibrate the particle weights and adjust the cognitive bandwidth estimates ($B_t, F_t$) before the next tutor turn.
+
+\subsection{Long-Term Evaluation Protocol on Human Cohorts}
+Following successful simulation-driven policy optimisation, a pilot study is envisioned for future work:
+\begin{enumerate}
+    \item \textbf{Deployment Context:} The Socratic Tutor will be offered as an optional laboratory helper tool for MSc Computing students enrolled in introductory programming modules at Imperial College London.
+    \item \textbf{Empirical Evaluation:} Learning gains will be measured using pre- and post-tests administered through the platform, comparing human students using the Socratic feedback loop against a control group using traditional direct-answering LLM assistants.
+    \item \textbf{Qualitative Feedback:} Post-deployment surveys will gather qualitative feedback on cognitive load, usability, and frustration levels, calibrating the CBFM variables against real human learning rates.
+\end{enumerate}
+
+\subsection{Methodological Limitations and the Sim-to-Real Gap}
+While multi-agent simulation is a necessary bootstrapping step, we must acknowledge the inherent limitations of using synthetic student agents ($A_s$) to optimise tutoring policies for human students:
+\begin{itemize}
+    \item \textbf{The Sim-to-Real Epistemic Gap:} A human student's cognitive state is non-linear and shaped by complex, qualitative mental schemas. Our model's vectorized representation of knowledge ($\mathbf{K}^{\text{true}}_t \in \{0, 1\}^m$) is a simplified approximation that may fail to capture subtle human misconceptions.
+    \item \textbf{Pedagogical Policy Overfitting:} Optimising a tutor policy ($\pi_{\text{tutor}}$) against a static student agent prompt risks overfitting the tutor's scaffolding strategy to that specific LLM's conversational style. To mitigate this, we optimise the tutor against a randomised \textit{ensemble cohort} of student agents whose patience, analyticity, and baseline misconceptions are drawn from a randomised distribution $\mathcal{D}_{\text{student}}$.
+    \item \textbf{Deterministic Cognitive Updates:} Sweller's Cognitive Load Theory is modelled here through deterministic updates of cognitive bandwidth ($B_t$). Real human fatigue is stochastic, influenced by motivation, interface friction, and environmental distractions. Thus, the CBFM represents a pedagogical lower-bound: a tutoring policy that overloads the simulated student will certainly fail in a real classroom.
+\end{itemize}
