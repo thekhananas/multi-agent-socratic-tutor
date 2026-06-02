@@ -9,10 +9,25 @@
 \usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
 
 %% Useful packages
-\usepackage{amsmath}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
 \usepackage{graphicx}
 \usepackage[colorinlistoftodos]{todonotes}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{pdflscape}
+\usepackage{xltabular}
+\usepackage{tikz}
+
+% TikZ configurations
+\usetikzlibrary{shapes.geometric, arrows, positioning}
+\tikzstyle{startstop} = [draw, rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text width=3cm, text centered, draw=blue!50, fill=blue!10]
+\tikzstyle{process} = [draw, rectangle, minimum width=3cm, minimum height=1cm, text width=3cm, text centered, draw=orange!50, fill=orange!10]
+\tikzstyle{decision} = [draw, diamond, aspect=2, minimum width=3cm, minimum height=1cm, text width=2.5cm, text centered, draw=green!50, fill=green!10]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+
+% Define a ragged-right version of the X column type for tabularx
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 
 \title{Project Title}
 \author{Anas Khan}
@@ -39,9 +54,9 @@ While Large Language Models (LLMs) have emerged as highly competent tools for in
 % \input{background/background.tex}
 \input{literature/literature_review.tex}
 \input{project/project.tex}
-\input{evaluation/evaluation.tex}
-\input{conclusion/conclusion.tex}
-\input{appendix/appendix.tex}
+% \input{evaluation/evaluation.tex}
+% \input{conclusion/conclusion.tex}
+% \input{appendix/appendix.tex}
 
 \renewcommand{\bibname}{References}
 \bibliographystyle{vancouver}
