@@ -1,0 +1,36 @@
+\chapter{Early Experimentation}
+\label{ch:tech}
+
+\section{LangGraph Orchestrator Flow}
+The system is orchestrated using a centralised, versioned state buffer, managed via a cyclic directed graph in \textbf{LangGraph}. To prevent write conflicts and maintain transaction integrity across asynchronous agent steps, the graph state updates conform to a strict single-writer policy \cite{intellicode2025}. Specialist agents (such as the Socratic Tutor $A_t$ or simulated Student $A_s$) act as pure functions over read-only snapshots of the state buffer; only the Epistemic Tracker $A_e$ is authorised to commit write modifications back to the shared state buffer \cite{elhaimeur2026itas}. Furthermore, to investigate peer-agent social scaffolding dynamics (RQ2), the orchestrator stochastically instantiates a simulated peer student agent $A_{\text{peer}}$ alongside the target student $A_s$. This peer agent stochastically introduces controlled conceptual or arithmetic errors into the dialogue, triggering productive cognitive conflict and observational learning, which SOTA social learning research shows to increase learning outcomes \cite{kumar2026beyond}. The active multi-agent components and dialogue flows are illustrated in Figure~\ref{fig:flowchart}.
+
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[node distance=1.8cm]
+    \node (start) [startstop] {Start Turn};
+    \node (ae) [process, below of=start] {Epistemic Tracker ($A_e$)};
+    \node (at) [process, below of=ae] {Socratic Tutor ($A_t$)};
+    \node (ag) [process, below of=at] {Guardrail ($A_g$)};
+    \node (dec) [decision, below of=ag, yshift=-0.5cm] {Answer Leaked?};
+    \node (rewrite) [process, right of=at, xshift=2.5cm] {Rewrite \& Feedback};
+    \node (as) [process, below of=dec, yshift=-0.5cm] {Simulated Student ($A_s$)};
+    \node (check) [decision, below of=as, yshift=-0.5cm] {Turn Limit?};
+    \node (stop) [startstop, below of=check, yshift=-0.5cm] {End Simulation};
+    
+    \draw [arrow] (start) -- (ae);
+    \draw [arrow] (ae) -- (at);
+    \draw [arrow] (at) -- (ag);
+    \draw [arrow] (ag) -- (dec);
+    \draw [arrow] (dec) -- node[midway, left] {No} (as);
+    \draw [arrow] (dec) -| (rewrite) node[pos=0.25, above] {Yes};
+    \draw [arrow] (rewrite) -- (at);
+    \draw [arrow] (as) -- (check);
+    \draw [arrow] (check) -- node[midway, left] {Yes} (stop);
+    \draw [arrow] (check) -- node[midway, above] {No} ++(-3,0) |- (ae);
+\end{tikzpicture}
+\caption{LangGraph Multi-Agent Cycle with Guardrail and State Loop.}
+\label{fig:flowchart}
+\end{figure}
+
+
