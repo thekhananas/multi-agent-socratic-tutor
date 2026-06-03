@@ -7,27 +7,61 @@ The system is orchestrated using a centralised, versioned state buffer, managed 
 
 \begin{figure}[htbp]
 \centering
-\begin{tikzpicture}[node distance=1.8cm]
-    \node (start) [startstop] {Start Turn};
-    \node (ae) [process, below of=start] {Epistemic Tracker ($A_e$)};
-    \node (at) [process, below of=ae] {Socratic Tutor ($A_t$)};
-    \node (ag) [process, below of=at] {Guardrail ($A_g$)};
-    \node (dec) [decision, below of=ag, yshift=-0.5cm] {Answer Leaked?};
-    \node (rewrite) [process, right of=at, xshift=2.5cm] {Rewrite \& Feedback};
-    \node (as) [process, below of=dec, yshift=-0.5cm] {Simulated Student ($A_s$)};
-    \node (check) [decision, below of=as, yshift=-0.5cm] {Turn Limit?};
-    \node (stop) [startstop, below of=check, yshift=-0.5cm] {End Simulation};
+\definecolor{slatebg}{HTML}{F8FAFC}
+\definecolor{slateborder}{HTML}{64748B}
+\definecolor{tealbg}{HTML}{F0FDFA}
+\definecolor{tealborder}{HTML}{0D9488}
+\definecolor{bluebg}{HTML}{EFF6FF}
+\definecolor{blueborder}{HTML}{1D4ED8}
+\definecolor{redbg}{HTML}{FEF2F2}
+\definecolor{redborder}{HTML}{DC2626}
+\definecolor{purplebg}{HTML}{F5F3FF}
+\definecolor{purpleborder}{HTML}{7C3AED}
+\definecolor{orangebg}{HTML}{FFFBEB}
+\definecolor{orangeborder}{HTML}{D97706}
+
+\begin{tikzpicture}[
+    node distance=1.2cm and 1.0cm,
+    >=stealth,
+    % Custom styles for modern professional look
+    sysnode/.style={draw=slateborder, fill=slatebg, rounded corners, minimum width=2.4cm, minimum height=1.0cm, text width=2.2cm, align=center, font=\sffamily\small, line width=0.8pt},
+    trackernode/.style={draw=tealborder, fill=tealbg, rounded corners, minimum width=2.8cm, minimum height=1.0cm, text width=2.6cm, align=center, font=\sffamily\small, line width=0.8pt},
+    tutornode/.style={draw=blueborder, fill=bluebg, rounded corners, minimum width=2.8cm, minimum height=1.0cm, text width=2.6cm, align=center, font=\sffamily\small, line width=0.8pt},
+    guardnode/.style={draw=redborder, fill=redbg, rounded corners, minimum width=2.8cm, minimum height=1.0cm, text width=2.6cm, align=center, font=\sffamily\small, line width=0.8pt},
+    studentnode/.style={draw=purpleborder, fill=purplebg, rounded corners, minimum width=2.8cm, minimum height=1.0cm, text width=2.6cm, align=center, font=\sffamily\small, line width=0.8pt},
+    decisionnode/.style={draw=orangeborder, fill=orangebg, diamond, aspect=2, minimum width=2.8cm, minimum height=1.0cm, text width=2.4cm, align=center, font=\sffamily\small, line width=0.8pt},
+    arrow/.style={draw=gray!80, thick, ->, line width=1.0pt}
+]
+    % Row 1
+    \node (start) [sysnode] {Start Turn};
+    \node (ae) [trackernode, right=of start] {Epistemic Tracker\\($A_e$)};
+    \node (at) [tutornode, right=of ae] {Socratic Tutor\\($A_t$)};
+    \node (ag) [guardnode, right=of at] {Pedagogical\\Guardrail ($A_g$)};
     
+    % Row 2
+    \node (check) [decisionnode, below=1.8cm of ae] {Turn Limit?};
+    \node (stop) [sysnode] at (check -| start) {End Simulation};
+    \node (as) [studentnode] at (check -| at) {Simulated\\Student ($A_s$)};
+    \node (dec) [decisionnode] at (check -| ag) {Answer Leaked?};
+    
+    % Inner node for rewrite
+    \node (rewrite) [trackernode, above=0.5cm of as, xshift=1.9cm, fill=redbg!50, draw=redborder!50] {Rewrite \& Feedback};
+    
+    % Connections
     \draw [arrow] (start) -- (ae);
     \draw [arrow] (ae) -- (at);
     \draw [arrow] (at) -- (ag);
     \draw [arrow] (ag) -- (dec);
-    \draw [arrow] (dec) -- node[midway, left] {No} (as);
-    \draw [arrow] (dec) -| (rewrite) node[pos=0.25, above] {Yes};
-    \draw [arrow] (rewrite) -- (at);
+    
+    % Decision: Answer Leaked?
+    \draw [arrow] (dec) -- node[midway, above] {No} (as);
+    \draw [arrow] (dec) |- (rewrite) node[pos=0.3, right] {Yes};
+    \draw [arrow] (rewrite) -| (at);
+    
+    % Student response & loop
     \draw [arrow] (as) -- (check);
-    \draw [arrow] (check) -- node[midway, left] {Yes} (stop);
-    \draw [arrow] (check) -- node[midway, above] {No} ++(-3,0) |- (ae);
+    \draw [arrow] (check) -- node[midway, above] {Yes} (stop);
+    \draw [arrow] (check) -- node[midway, left] {No} (ae);
 \end{tikzpicture}
 \caption{LangGraph Multi-Agent Cycle with Guardrail and State Loop.}
 \label{fig:flowchart}
